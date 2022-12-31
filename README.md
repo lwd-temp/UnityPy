@@ -318,6 +318,28 @@ for name, data in clip.samples.items():
         f.write(data)
 ```
 
+In case the export doesn't work or the exported files sound bad,
+retry the export while letting UnityPy use [python-fsb5](https://github.com/HearthSim/python-fsb5) instead of fmod.
+
+```python
+import UnityPy
+UnityPy.config.USE_FSB5 = True
+
+clip : AudioClip
+for name, data in clip.samples.items():
+    with open(name, "wb") as f:
+        f.write(data)
+```
+
+Take note that this requires installing python-fsb5.
+
+- Windows
+    - win32 `pip install https://github.com/HearthSim/python-fsb5/releases/download/b7bf605/python-fsb5_win32.zip"`
+    - win64 `pip install https://github.com/HearthSim/python-fsb5/releases/download/b7bf605/python-fsb5_win64.zip"`
+- Linux & MacOS
+    - `pip install fsb5`
+    - instal `llibogg` and `libvorbis` via your package manager
+
 ### [Font](UnityPy/classes/Font.py)
 
 ```python
