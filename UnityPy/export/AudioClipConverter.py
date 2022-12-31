@@ -1,7 +1,9 @@
 import ctypes
 import os
 import platform
-from UnityPy.streams import EndianBinaryWriter
+
+from ..streams import EndianBinaryWriter
+from .. import config
 
 # pyfmodex loads the dll/so/dylib on import
 # so we have to adjust the environment vars
@@ -94,7 +96,11 @@ def extract_audioclip_samples(audio) -> dict:
         return {"%s.ogg" % audio.name: audio.m_AudioData}
     elif magic == b"RIFF":
         return {"%s.wav" % audio.name: audio.m_AudioData}
-    return dump_samples(audio)
+
+    if config.USE_FSB5:
+        return dump_samples_fsb5(audio)
+    else:
+        return dump_samples(audio)
 
 
 def dump_samples(clip):
@@ -164,3 +170,28 @@ def subsound_to_wav(subsound):
         w.write(ptr_data)
     subsound.unlock(*lock)
     return w.bytes
+
+
+def dump_samples_fsb5(clip):
+    # credits to HearthSim/UnityPack/unitypack/utils.py
+    # https://github.com/HearthSim/UnityPack/blob/f8cdc2516538d189606a76986ad2d71c3fad5f8b/unitypack/utils.py#L14
+    try:
+        from fsb5 import FSB5
+    except ImportError:
+        raise RuntimeError("python-fsb5 is required to extract AudioClip")
+
+    ret = {}
+    af = FSB5(clip.m_AudioData)
+    for i, sample in enumerate(af.samples):
+        if i > 0:
+            filename = "%s-%i.%s" % (clip.m_Name, i, af.get_sample_extension())
+        else:
+            filename = "%s.%s" % (clip.m_Name, af.get_sample_extension())
+        try:
+            sample = af.rebuild_sample(sample)
+        except ValueError as e:
+            print("WARNING: Could not extract %r (%s)" % (d, e))
+            continue
+        ret[filename] = sample
+
+    return ret

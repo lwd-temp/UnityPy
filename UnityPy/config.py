@@ -5,6 +5,9 @@ FALLBACK_UNITY_VERSION = "2.5.0f5"
 #  but it will also prevent saving an edited file
 SERIALIZED_FILE_PARSE_TYPETREE = True
 
+# use python-fsb5 instead of fmod
+USE_FSB5 = False
+
 # GLOBAL WARNING SUPPRESSION
 FALLBACK_VERSION_WARNED = False  # for FALLBACK_UNITY_VERSION
 
