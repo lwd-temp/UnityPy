@@ -14,36 +14,7 @@ class Texture2D(Texture):
 
     @image.setter
     def image(self, img):
-        # img is PIL.Image / image path / opened file
-        # overwrite original image data with the RGB(A) image data and sets the correct new format
-        if img is None:
-            raise Exception("No image provided")
-
-        if (
-            isinstance(img, str)
-            or isinstance(img, BufferedIOBase)
-            or isinstance(img, RawIOBase)
-            or isinstance(img, IOBase)
-        ):
-            img = Image.open(img)
-
-        img_data, tex_format = Texture2DConverter.image_to_texture2d(
-            img, self.m_TextureFormat
-        )
-
-        # disable mipmaps as we don't store them ourselves by default
-        if self.version[:2] < (5, 2):  # 5.2 down
-            self.m_MipMap = False
-        else:
-            self.m_MipCount = 1
-
-        self.image_data = img_data
-        self.m_MipCount = 1
-        # width * height * channel count
-        self.m_CompleteImageSize = len(
-            img_data
-        )  # img.width * img.height * len(img.getbands())
-        self.m_TextureFormat = tex_format
+        self.set_image(img, self.m_TextureFormat, False, getattr(self, "m_MipCount", 1))
 
     @property
     def image_data(self):
@@ -80,6 +51,15 @@ class Texture2D(Texture):
     ):
         if img is None:
             raise Exception("No image provided")
+
+        if (
+            isinstance(img, str)
+            or isinstance(img, BufferedIOBase)
+            or isinstance(img, RawIOBase)
+            or isinstance(img, IOBase)
+        ):
+            img = Image.open(img)
+
         if not target_format:
             target_format = self.m_TextureFormat
 
@@ -110,10 +90,9 @@ class Texture2D(Texture):
             self._image_data = img_data
             self.reset_streamdata()
 
-        # width * height * channel count
-        self.m_CompleteImageSize = len(
-            img_data
-        )  # img.width * img.height * len(img.getbands())
+        self.m_CompleteImageSize = len(img_data)
+        self.m_Width = img.width
+        self.m_Height = img.height
         self.m_TextureFormat = tex_format
 
     def __init__(self, reader):
